@@ -12,12 +12,17 @@ import useUserId from './useUserId'
 import axios from 'axios'
 
 
-
+type Track = {
+  title: string
+  artist: string
+  cover: string
+  preview: string
+}
 
 
 const useTrack = () => {
     const userId = useUserId()
-    const [track, setTrack] = useState(null)
+    const [track, setTrack] = useState<Track | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
 
