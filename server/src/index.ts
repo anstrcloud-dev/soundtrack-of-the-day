@@ -5,9 +5,12 @@
 
 import express, { Request, Response } from 'express'
 import axios from 'axios'
+import cors from 'cors'
 
 
 const app = express() // creates actual server instance
+app.use(cors())  
+
 const port = 3001
 
 
@@ -29,9 +32,15 @@ app.get('/api/track', async (req: Request, res: Response) => {
   const date = new Date().toISOString().slice(0, 10)
   const seed = hashSeed(date + userId)
   const genre = GENRES[seed % GENRES.length] //same gene for the same seed
-  const offset = seed % 100
-  const response = await axios.get(`https://api.deezer.com/search?q=${genre}&limit=1&index=${offset}`)
+  const offset = seed % 50
+  const response = await axios.get(`https://api.deezer.com/search?q=genre:${genre}&limit=1&index=${offset}`)
+  
   const track = response.data.data[0] //the first .data is axios unwrapping the response, the second .data is the Deezer array, and [0] gets the first (only) track.
+  console.log('genre:', genre, 'offset:', offset, 'results:', response.data.data.length)
+  if (!track) {
+  res.status(404).json({ error: 'No track found' })
+  return
+}
 
   res.json({
   title: track.title,
