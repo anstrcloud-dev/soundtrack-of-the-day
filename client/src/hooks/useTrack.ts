@@ -7,7 +7,7 @@
 //A useEffect that Fetches from http://localhost:3001/api/track?userId=... and updates states
 //Return all three: { track, loading, error }
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 import useUserId from './useUserId'
 import axios from 'axios'
 
