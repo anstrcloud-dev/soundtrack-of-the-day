@@ -5,7 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'cinzel': ['Cinzel', 'serif'],
+        'cormorant': ['Cormorant Garamond', 'serif'],
+      }
+    },
   },
   plugins: [],
 }

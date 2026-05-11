@@ -17,6 +17,7 @@ type Track = {
   artist: string
   cover: string
   preview: string
+  reading: string
 }
 
 

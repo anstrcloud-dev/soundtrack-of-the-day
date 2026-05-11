@@ -1,17 +1,20 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import CardReveal from './CardReveal'
+
 
 type TrackCardProps = {
     title: string
     artist: string
     cover: string
     preview: string
+    reading: string
 }
 
 
 
 //Accept props: title, artist, cover, preview — all strings
 //Return some JSX displaying them — for now just text and an image, don't worry about the audio player yet
-const TrackCard = ({ title, artist, cover, preview }: TrackCardProps) => {
+const TrackCard = ({ title, artist, cover, preview, reading }: TrackCardProps) => {
     const [isPlaying, setIsPlaying] = useState(false) // start as false (not playing)
     const audioRef = useRef<HTMLAudioElement>(null)
     const [currentTime, setCurrentTime] = useState(0)
@@ -27,44 +30,70 @@ const TrackCard = ({ title, artist, cover, preview }: TrackCardProps) => {
     }
 
 
+    //animation
+    const [revealed, setRevealed] = useState(false)
+    useEffect(() => {
+        setTimeout(() => setRevealed(true), 300)
+    }, [])
+
+
     return (
-        <div className="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20">
-            <img
-                src={cover}
-                alt={title}
-                className="w-full rounded-md mb-4"
-            />
-            <h2 className="text-xl font-bold mb-1">{title}</h2>
-            <p className="text-black mb-4">{artist}</p>
+        <CardReveal>
+            <div>
+                <div className={`transition-all duration-1000 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
-            <div className="bg-gray-200 rounded-full h-1 mb-4">
-                <div
-                    className="bg-blue-500 h-1 rounded-full transition-all"
-                    style={{ width: `${(currentTime / duration) * 100}%` }}
-                ></div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20">
+                        <img
+                            src={cover}
+                            alt={title}
+                            className="w-full rounded-md mb-4"
+                        />
+                        <p className="text-purple-300 text-xs uppercase tracking-widest text-center mb-2">
+                            Your Card
+                        </p>
+                        <h2 className="text-xl font-bold mb-1 text-purple-100">{title}</h2>
+                        <p className="text-purple-200 mb-4">{artist}</p>
+
+                        <div className="bg-gray-200 rounded-full h-1 mb-4">
+                            <div
+                                className="bg-blue-500 h-1 rounded-full transition-all"
+                                style={{ width: `${(currentTime / duration) * 100}%` }}
+                            ></div>
+                        </div>
+                        <button
+                            onClick={togglePlay}
+                            className="w-12 h-12 mx-auto flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg"
+                        >
+                            {isPlaying ? (
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            )}
+                        </button>
+
+                        <audio
+                            ref={audioRef}
+                            src={preview}
+                            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                        />
+
+                        <div className={`bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20 mt-4 transition-all duration-1000 delay-700 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>                    <p
+                            className="text-center text-gray-100 italic leading-relaxed text-lg"
+                            style={{ fontFamily: "'Cinzel', serif" }}
+                        >
+                            {reading}
+                        </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button
-                onClick={togglePlay}
-                className="w-12 h-12 mx-auto flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg"
-            >
-                {isPlaying ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                    </svg>
-                ) : (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                )}
-            </button>
+        </CardReveal>
 
-            <audio
-                ref={audioRef}
-                src={preview}
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-            />
-        </div>
     )
 
 
