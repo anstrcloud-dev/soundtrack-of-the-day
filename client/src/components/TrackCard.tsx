@@ -8,13 +8,14 @@ type TrackCardProps = {
     cover: string
     preview: string
     reading: string
+    onFinishSplash?: () => void //card
 }
 
 
 
 //Accept props: title, artist, cover, preview — all strings
 //Return some JSX displaying them — for now just text and an image, don't worry about the audio player yet
-const TrackCard = ({ title, artist, cover, preview, reading }: TrackCardProps) => {
+const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: TrackCardProps) => {
     const [isPlaying, setIsPlaying] = useState(false) // start as false (not playing)
     const audioRef = useRef<HTMLAudioElement>(null)
     const [currentTime, setCurrentTime] = useState(0)
@@ -38,7 +39,7 @@ const TrackCard = ({ title, artist, cover, preview, reading }: TrackCardProps) =
 
 
     return (
-        <CardReveal>
+        <CardReveal onFinishSplash={onFinishSplash}>
             <div>
                 <div className={`transition-all duration-1000 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 

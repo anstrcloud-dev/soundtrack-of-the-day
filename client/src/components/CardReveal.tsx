@@ -3,25 +3,47 @@ import type { ReactNode } from 'react'
 
 type CardRevealProps = {
   children: ReactNode
+  onFinishSplash?: () => void //test
 }
 
-const CardReveal = ({ children }: CardRevealProps) => {
-  const [phase, setPhase] = useState<'shuffle' | 'settle' | 'flip' | 'revealed'>('shuffle')
+//const CardReveal = ({ children }: CardRevealProps) => {
+const CardReveal = ({ children, onFinishSplash }: CardRevealProps) => {
+  const [phase, setPhase] = useState<'splash' | 'shuffle' | 'settle' | 'flip' | 'revealed'>('splash')
   const [showContent, setShowContent] = useState(false)
 
   useEffect(() => {
-    const shuffleTimer = setTimeout(() => setPhase('settle'), 2000)
-    const settleTimer = setTimeout(() => setPhase('flip'), 3000)
-    const contentTimer = setTimeout(() => setShowContent(true), 3500) // halfway through flip
-    const revealTimer = setTimeout(() => setPhase('revealed'), 4000)
-    
+    //test
+    const splashTimer = setTimeout(() => {
+      setPhase('shuffle');
+      onFinishSplash?.(); // Tell the parent splash is done
+    }, 1500)
+    //
+    //const splashTimer = setTimeout(() => setPhase('shuffle'), 1500)      // show logo 
+    const shuffleTimer = setTimeout(() => setPhase('settle'), 3500)       // shuffle
+    const settleTimer = setTimeout(() => setPhase('flip'), 4500)          // settle
+    const contentTimer = setTimeout(() => setShowContent(true), 5000)     // halfway through flip
+    const revealTimer = setTimeout(() => setPhase('revealed'), 5500)      // reveal
+
     return () => {
+      clearTimeout(splashTimer)
       clearTimeout(shuffleTimer)
       clearTimeout(settleTimer)
       clearTimeout(contentTimer)
       clearTimeout(revealTimer)
     }
-  }, [])
+  }, [onFinishSplash])
+
+  if (phase === 'splash') {
+    return (
+      <div className="flex items-center justify-center h-[450px] animate-[fadeIn_0.5s_ease-in]">
+        <img
+          src="/logo.png"
+          alt="Audiomancy"
+          className="w-[450px] h-[450px] object-contain animate-pulse"
+        />
+      </div>
+    )
+  }
 
   if (phase === 'shuffle' || phase === 'settle') {
     return (
