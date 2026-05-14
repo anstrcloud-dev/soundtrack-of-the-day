@@ -30,7 +30,7 @@ const useTrack = () => {
     useEffect(() => {
         const fetchTrack = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/api/track?userId=${userId}`)
+                const response = await axios.get(`https://audiomancy-api.onrender.com/api/track?userId=${userId}`)
                 setTrack(response.data)
                 setLoading(false)
             } catch (err) {
