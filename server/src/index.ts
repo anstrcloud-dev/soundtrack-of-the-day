@@ -79,11 +79,13 @@ Generate ONLY the reading, nothing else.`
 
 //tarot card art
 const generateCardArt = (reading: string, genre: string) => {
-  const prompt = `Vintage tarot card design: a single central symbolic object or figure representing "${reading.split(',')[0]}", ornate decorative border with Art Nouveau patterns, rich deep purple and indigo background with gold accents, mystical zodiac symbols in corners, ${genre} aesthetic influence, detailed illustration style like Rider-Waite tarot deck, ethereal lighting, no text, no words, no letters`
+  // Extract key theme from reading
+  const theme = reading.split(',')[0].trim()
   
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=768&nologo=true&seed=${Date.now()}`
+  const prompt = `Modern illustrated tarot card in flat graphic style, single symbolic figure or object representing ${theme}, minimalist composition, ${genre} music aesthetic, rich jewel tones with deep purples blues and gold accents, clean geometric shapes, Art Deco border frame, mystical symbols, vintage poster art style, digital illustration, no text no words no letters, simple bold shapes`
+  
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=768&nologo=true&model=flux`
 }
-
 
 
 //route handler
