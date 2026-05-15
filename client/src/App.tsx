@@ -61,7 +61,7 @@ function App() {
           cover={track.cover}
           preview={track.preview}
           reading={track.reading}
-          cardArt={track.cardArt} 
+          //cardArt={track.cardArt} 
           // Pass the callback to the TrackCard (which will pass it to CardReveal)
           onFinishSplash={() => setIsSplashActive(false)}
         />
