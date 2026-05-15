@@ -32,6 +32,9 @@ const hashSeed = (str: string): number => {
 
 const GENRES = ['pop', 'rock', 'jazz', 'electronic', 'classical', 'hip-hop', 'soul', 'indie']
 
+
+
+//prediction
 const generateReading = async (title: string, artist: string, genre: string, userId: string, date: string) => {
   const cacheKey = `${userId}-${date}`
   const cached = readingCache.get(cacheKey)
@@ -74,31 +77,65 @@ Generate ONLY the reading, nothing else.`
   return newReading
 }
 
+//tarot card art
+const generateCardArt = (reading: string, genre: string) => {
+  const prompt = `Vintage tarot card design: a single central symbolic object or figure representing "${reading.split(',')[0]}", ornate decorative border with Art Nouveau patterns, rich deep purple and indigo background with gold accents, mystical zodiac symbols in corners, ${genre} aesthetic influence, detailed illustration style like Rider-Waite tarot deck, ethereal lighting, no text, no words, no letters`
+  
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=768&nologo=true&seed=${Date.now()}`
+}
+
+
+
 //route handler
 app.get('/api/track', async (req: Request, res: Response) => {
   const userId = req.query.userId as string
   const date = new Date().toISOString().slice(0, 10)
   const seed = hashSeed(date + userId)
+  const dateNumber = new Date().getDate() + new Date().getMonth() * 31  // changes daily
   const genre = GENRES[seed % GENRES.length] //same gene for the same seed
-  const offset = seed % 50
-  const response = await axios.get(`https://api.deezer.com/search?q=genre:${genre}&limit=1&index=${offset}`)
+  const offset = (seed + dateNumber * 137) % 500
+  //const response = await axios.get(`https://api.deezer.com/search?q=genre:${genre}&limit=1&index=${offset}`)
 
 
-  const track = response.data.data[0] //the first .data is axios unwrapping the response, the second .data is the Deezer array, and [0] gets the first (only) track.
-  console.log('genre:', genre, 'offset:', offset, 'results:', response.data.data.length)
+
+  //const track = response.data.data[0] //the first .data is axios unwrapping the response, the second .data is the Deezer array, and [0] gets the first (only) track.
+  //console.log('genre:', genre, 'offset:', offset, 'results:', response.data.data.length)
+
+  let track = null
+  let attempts = 0
+  let currentOffset = offset
+  let currentGenre = genre
+
+  while (!track && attempts < 10) {
+    const response = await axios.get(`https://api.deezer.com/search?q=genre:${currentGenre}&limit=1&index=${currentOffset}`)
+
+    if (response.data.data[0]) {
+      track = response.data.data[0]
+    } else {
+      currentOffset = (currentOffset + 50) % 500
+      if (attempts % 2 === 1) {  // every other attempt, try a new genre
+        currentGenre = GENRES[(seed + attempts) % GENRES.length]
+      }
+      attempts++
+    }
+  }
+
+
   if (!track) {
     res.status(404).json({ error: 'No track found' })
     return
   }
 
-  const reading = await generateReading(track.title, track.artist.name, genre, userId, date)
+  const reading = await generateReading(track.title, track.artist.name, currentGenre, userId, date)
+  const cardArt = generateCardArt(reading, currentGenre)
 
   res.json({
     title: track.title,
     artist: track.artist.name,
     cover: track.album.cover_medium,
     preview: track.preview,
-    reading: reading
+    reading: reading,
+    cardArt: cardArt
   })
 
 })
