@@ -129,7 +129,7 @@ app.get('/api/track', async (req: Request, res: Response) => {
   }
 
   const reading = await generateReading(track.title, track.artist.name, currentGenre, userId, date)
-  const cardArt = generateCardArt(reading, currentGenre)
+  //const cardArt = generateCardArt(reading, currentGenre)
 
   res.json({
     title: track.title,
@@ -137,7 +137,7 @@ app.get('/api/track', async (req: Request, res: Response) => {
     cover: track.album.cover_medium,
     preview: track.preview,
     reading: reading,
-    cardArt: cardArt
+    //cardArt: cardArt using album cover for now
   })
 
 })

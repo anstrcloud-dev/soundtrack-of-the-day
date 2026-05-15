@@ -46,21 +46,21 @@ const TrackCard = ({ title, artist, cover, preview, reading, cardArt, onFinishSp
                 <div className={`transition-all duration-1000 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
                     <div className="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20">
-                        {/*  <img
-                            //src={cover}
-                            src={cardArt}
+                          <img
+                            src={cover}
+                            //src={cardArt}
                             
                             alt={title}
-                            className="w-full rounded-md mb-4"   /> */}
-                        <img
+                            className="w-full rounded-md mb-4"   /> 
+                      {/*  <img
                             src={cardArt}
                             alt={title}
                             className="w-full rounded-md mb-4"
                             onError={(e) => {
                                 console.error('AI card art failed, using album cover')
                                 e.currentTarget.src = cover
-                            }}
-                        />
+                            }} 
+                        />*/}
 
 
                         <p className="text-purple-300 text-xs uppercase tracking-widest text-center mb-2">
