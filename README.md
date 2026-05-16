@@ -1,7 +1,7 @@
 # Audiomancy — Your Daily Musical Oracle
 
 <p align="center">
-  <img src="client/public/audiomancy-preview.png" alt="Audiomancy Card Preview" width="600"/>
+  <img src="client/public/logo.png" alt="Audiomancy Logo" width="500"/>
 </p>
 
 A mystical fullstack TypeScript web application that draws a personalized soundtrack for you each day, accompanied by an AI-generated poetic reading. Like pulling a daily tarot card, but with music.
