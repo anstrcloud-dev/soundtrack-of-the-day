@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import CardReveal from './CardReveal'
+import html2canvas from 'html2canvas'
 
 
 type TrackCardProps = {
@@ -8,7 +9,7 @@ type TrackCardProps = {
     cover: string
     preview: string
     reading: string
-   // cardArt: string
+    // cardArt: string
     onFinishSplash?: () => void //card
 
 }
@@ -22,6 +23,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
     const audioRef = useRef<HTMLAudioElement>(null)
     const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(30)
+    const [isCapturing, setIsCapturing] = useState(false)
 
     const togglePlay = () => {
         if (isPlaying) {
@@ -33,6 +35,54 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
     }
 
 
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'My Audiomancy Card',
+                    text: `${title} by ${artist}\n\n${reading}`,
+                    url: window.location.href
+                })
+            } catch (err) {
+                console.log('Share cancelled')
+            }
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(`${title} by ${artist}\n\n${reading}\n\n${window.location.href}`)
+            alert('Link copied to clipboard!')
+        }
+    }
+
+
+    const cardRef = useRef<HTMLDivElement>(null)
+
+    const handleSave = async () => {
+        if (!cardRef.current) return
+
+        try {
+            setIsCapturing(true) //hide buttons
+            await new Promise(resolve => setTimeout(resolve, 100)) //let state update
+            // await new Promise(resolve => setTimeout(resolve, 500)) //wait for images to load
+
+            const canvas = await html2canvas(cardRef.current, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true, //important for loading external images
+                allowTaint: true
+            })
+
+            setIsCapturing(false) //show buttons again
+
+            const link = document.createElement('a')
+            link.download = `audiomancy-${title.replace(/\s+/g, '-')}.png`
+            link.href = canvas.toDataURL('image/png')
+            link.click()
+        } catch (error) {
+            console.error('Failed to save image:', error)
+            setIsCapturing(false)
+        }
+    }
+
     //animation
     const [revealed, setRevealed] = useState(false)
     useEffect(() => {
@@ -42,17 +92,18 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
 
     return (
         <CardReveal onFinishSplash={onFinishSplash}>
-            <div>
+            <div className="flex gap-4 items-start">
                 <div className={`transition-all duration-1000 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
-                    <div className="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20">
-                          <img
-                            src={cover}
-                            //src={cardArt}
-                            
-                            alt={title}
-                            className="w-full rounded-md mb-4"   /> 
-                      {/*  <img
+                    <div ref={cardRef} className="bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20">                        <img
+                        src={cover}
+                        //src={cardArt}
+
+                        alt={title}
+
+                        className="w-full rounded-md mb-4"
+                    />
+                        {/*  <img
                             src={cardArt}
                             alt={title}
                             className="w-full rounded-md mb-4"
@@ -69,15 +120,18 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                         <h2 className="text-xl font-bold mb-1 text-purple-100">{title}</h2>
                         <p className="text-purple-200 mb-4">{artist}</p>
 
-                        <div className="bg-gray-200 rounded-full h-1 mb-4">
+                        {/* Progress bar */}
+                        <div className={`bg-gray-200 rounded-full h-1 mb-4 ${isCapturing ? 'hidden' : ''}`}>
                             <div
                                 className="bg-blue-500 h-1 rounded-full transition-all"
                                 style={{ width: `${(currentTime / duration) * 100}%` }}
                             ></div>
                         </div>
+
+                        {/* Play button */}
                         <button
                             onClick={togglePlay}
-                            className="w-12 h-12 mx-auto flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg"
+                            className={`w-12 h-12 mx-auto flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg ${isCapturing ? 'hidden' : ''}`}
                         >
                             {isPlaying ? (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -90,7 +144,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                             )}
                         </button>
 
-                        <div className="flex gap-2 mt-4 justify-center">
+                        <div className={`flex gap-2 mt-4 justify-center ${isCapturing ? 'hidden' : ''}`}>
 
                             <a
                                 href={`https://open.spotify.com/search/${encodeURIComponent(title + ' ' + artist)}`}
@@ -110,8 +164,8 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                                 rel="noopener noreferrer"
                                 className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm rounded-full transition flex items-center gap-2"
                             >
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M23.994 6.124a9.23 9.23 0 00-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043a5.022 5.022 0 00-1.877-.726 10.496 10.496 0 00-1.564-.15c-.04-.003-.083-.01-.124-.013H5.986c-.152.01-.303.017-.455.026-.747.043-1.49.123-2.193.4-1.336.53-2.3 1.452-2.865 2.78-.192.448-.292.925-.363 1.408a10.61 10.61 0 00-.1 1.18c0 .032-.007.062-.01.093v12.223c.01.14.017.283.027.424.05.815.154 1.624.497 2.373.65 1.42 1.738 2.353 3.234 2.801.42.127.856.187 1.293.228.555.053 1.11.06 1.667.06h11.03a12.5 12.5 0 001.57-.1c.822-.106 1.596-.35 2.296-.81a5.046 5.046 0 002.174-2.488c.225-.51.326-1.05.38-1.6.058-.592.076-1.185.076-1.778V6.247c-.002-.04-.007-.08-.01-.123zM9.178 15.429v-7.97c0-.252.031-.5.093-.742.11-.43.314-.826.628-1.15.418-.43.92-.706 1.507-.87.653-.184 1.31-.233 1.977-.145.705.093 1.367.3 1.977.668.534.322.99.74 1.36 1.253.333.463.523.972.558 1.533.037.603-.065 1.188-.314 1.747-.297.665-.764 1.18-1.396 1.534-.436.244-.912.38-1.402.462-.636.106-1.27.065-1.89-.15-.49-.17-.93-.43-1.313-.79-.13-.123-.222-.274-.307-.432-.08-.148-.13-.306-.15-.472-.016-.14-.01-.28-.003-.418.01-.193.067-.37.193-.52.183-.218.42-.316.7-.34.664-.06 1.25.12 1.778.536.287.227.51.51.65.854.02.05.043.097.063.147.017.04.033.08.05.12.522-.254 1.01-.545 1.448-.94.505-.456.91-1.003 1.202-1.63.175-.376.272-.774.298-1.19.03-.473-.05-.928-.235-1.364-.277-.652-.733-1.17-1.34-1.558-.638-.408-1.343-.653-2.095-.755-.78-.106-1.553-.05-2.313.17-.88.255-1.62.712-2.207 1.402a3.88 3.88 0 00-.822 1.84 7.843 7.843 0 00-.082.855c-.004.085-.004.17-.004.256v7.97c0 .438.013.875.056 1.31.074.753.263 1.476.63 2.148.44.804 1.043 1.443 1.817 1.917.773.473 1.627.73 2.535.82.788.078 1.572.06 2.348-.133.93-.23 1.778-.632 2.523-1.234.61-.494 1.115-1.09 1.512-1.785.404-.71.67-1.473.798-2.28.12-.758.152-1.52.09-2.286-.073-.904-.283-1.772-.68-2.588a6.89 6.89 0 00-1.528-2.16c-.696-.66-1.495-1.166-2.39-1.508a8.186 8.186 0 00-2.807-.6c-.784-.033-1.564.023-2.334.19-.916.2-1.778.53-2.567 1.043-.887.576-1.615 1.315-2.163 2.218-.51.84-.822 1.752-.944 2.725-.11.88-.09 1.76.026 2.638.134 1.01.423 1.966.88 2.86.49.96 1.155 1.777 1.985 2.442a8.534 8.534 0 002.97 1.52c.99.295 2.007.44 3.042.463.85.018 1.695-.02 2.53-.16 1.032-.173 2.018-.476 2.947-.963.99-.52 1.863-1.207 2.602-2.063.01-.01.016-.025.025-.038-.01-.01-.017-.023-.026-.033-.543-.573-1.086-1.146-1.63-1.72-.01-.01-.022-.016-.034-.025-.01.01-.023.016-.033.026a6.812 6.812 0 01-2.054 1.446c-.837.404-1.724.627-2.653.71-.758.067-1.51.037-2.254-.12a5.943 5.943 0 01-2.078-.82 5.597 5.597 0 01-1.644-1.567 5.28 5.28 0 01-.802-1.835 6.092 6.092 0 01-.17-1.414z" />
+                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                                 </svg>
                                 Apple Music
                             </a>
@@ -124,6 +178,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                             onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
                         />
 
+                        {/* Reading card */}
                         <div className={`bg-white/10 backdrop-blur-lg rounded-lg shadow-lg p-6 max-w-sm border border-white/20 mt-4 transition-all duration-1000 delay-700 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>                    <p
                             className="text-center text-gray-100 italic leading-relaxed text-lg"
                             style={{ fontFamily: "'Cinzel', serif" }}
@@ -131,9 +186,34 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                             {reading}
                         </p>
                         </div>
+
                     </div>
+
+                </div>
+
+                <div className="flex flex-col gap-3 pt-4">
+                    <button
+                        onClick={handleShare}
+                        className="w-12 h-12 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition shadow-lg"
+                        title="Share"
+                    >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                    </button>
+
+                    <button
+                        onClick={handleSave}
+                        className="w-12 h-12 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition shadow-lg"
+                        title="Save as image"
+                    >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </button>
                 </div>
             </div>
+
         </CardReveal >
 
     )
