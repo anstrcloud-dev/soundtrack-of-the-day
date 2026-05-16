@@ -65,7 +65,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
             // await new Promise(resolve => setTimeout(resolve, 500)) //wait for images to load
 
             const canvas = await html2canvas(cardRef.current, {
-                backgroundColor: null,
+                backgroundColor: '#1a0b2e',
                 scale: 2,
                 useCORS: true, //important for loading external images
                 allowTaint: true
