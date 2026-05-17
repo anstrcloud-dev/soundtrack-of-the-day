@@ -110,6 +110,7 @@ type CardRevealProps = {
 }
 
 const CardReveal = ({ children, onFinishSplash }: CardRevealProps) => {
+  const [showLogo, setShowLogo] = useState(true)
   const [showSplash, setShowSplash] = useState(true)
   const [cardsRevealed, setCardsRevealed] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
@@ -128,51 +129,70 @@ const CardReveal = ({ children, onFinishSplash }: CardRevealProps) => {
   ])
 
   useEffect(() => {
-    const cardInterval = setInterval(() => {
-      setCardsRevealed(prev => {
-        if (prev >= 8) {
-          clearInterval(cardInterval)
-          //spinning
-          setIsSpinning(true)
-          
-          // after spin, select random card
-          setTimeout(() => {
-            const randomIndex = Math.floor(Math.random() * 8)
-            setSelectedCard(randomIndex)
-            setIsSpinning(false)
-            
-            //flip the selected card
-            setTimeout(() => {
-              setIsFlipping(true)
-              
-              // Show actual content after flip
-              setTimeout(() => {
-                setShowSplash(false)
-                onFinishSplash?.()
-              }, 800)
-            }, 500)
-          }, 3000)
-          return prev
-        }
-        return prev + 1
-      })
-    }, 300)
+    // Hide logo after 2 seconds
+    const logoTimer = setTimeout(() => {
+      setShowLogo(false)
+    }, 2000)
 
-    return () => clearInterval(cardInterval)
+    // Start card animation after logo
+    const startCardsTimer = setTimeout(() => {
+      const cardInterval = setInterval(() => {
+        setCardsRevealed(prev => {
+          if (prev >= 8) {
+            clearInterval(cardInterval)
+            setIsSpinning(true)
+            
+            setTimeout(() => {
+              const randomIndex = Math.floor(Math.random() * 8)
+              setSelectedCard(randomIndex)
+              setIsSpinning(false)
+              
+              setTimeout(() => {
+                setIsFlipping(true)
+                
+                setTimeout(() => {
+                  setShowSplash(false)
+                  onFinishSplash?.()
+                }, 800)
+              }, 500)
+            }, 3000)
+            return prev
+          }
+          return prev + 1
+        })
+      }, 300)
+    }, 2000) // Start cards after logo disappears
+
+    return () => {
+      clearTimeout(logoTimer)
+      clearTimeout(startCardsTimer)
+    }
   }, [onFinishSplash])
 
+  // Show logo first
+  if (showLogo) {
+    return (
+      <div className="flex items-center justify-center h-screen animate-[fadeIn_0.5s_ease-in]">
+        <img
+          src="/logo.png"
+          alt="Audiomancy"
+          className="w-[450px] h-[450px] object-contain animate-pulse"
+        />
+      </div>
+    )
+  }
+
+  // Then show card animation
   if (!showSplash) {
     return <>{children}</>
   }
 
   return (
     <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#1a0b2e] to-[#0d0520]">
-      {/* Glowing aura ring */}
       {cardsRevealed === 8 && (
         <div className="absolute w-80 h-80 rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
       )}
 
-      {/* Circular card arrangement */}
       <div className={`relative w-96 h-96 ${isSpinning ? 'animate-spin-slow' : ''}`}>
         {[...Array(8)].map((_, i) => {
           const angle = (i * 360) / 8
