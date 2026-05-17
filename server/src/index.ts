@@ -30,7 +30,11 @@ const hashSeed = (str: string): number => {
   return hash
 }
 
-const GENRES = ['pop', 'rock', 'jazz', 'electronic', 'classical', 'hip-hop', 'soul', 'indie']
+const GENRES = [
+  'pop', 'rock', 'jazz', 'electronic', 'classical', 'hip-hop', 'soul', 'indie',
+  'r&b', 'country', 'reggae', 'latin', 'blues', 'metal', 'punk', 'folk',
+  'disco', 'funk', 'techno', 'house', 'ambient', 'world', 'afrobeat', 'k-pop'
+]
 
 
 
@@ -94,8 +98,10 @@ app.get('/api/track', async (req: Request, res: Response) => {
   const date = new Date().toISOString().slice(0, 10)
   const seed = hashSeed(date + userId)
   const dateNumber = new Date().getDate() + new Date().getMonth() * 31  // changes daily
+  const userSeed = hashSeed(userId) //user-specific variation
   const genre = GENRES[seed % GENRES.length] //same gene for the same seed
-  const offset = (seed + dateNumber * 137) % 500
+  const offset = ((seed * 7 + userSeed * 13 + dateNumber * 137) % 2000) 
+  //const offset = (seed + dateNumber * 137) % 500
   //const response = await axios.get(`https://api.deezer.com/search?q=genre:${genre}&limit=1&index=${offset}`)
 
 

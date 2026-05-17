@@ -41,7 +41,7 @@ const useTrack = () => {
             }
         }
         fetchTrack()
-    }, [])
+    }, [userId])
 
     return { track, loading, error }
 
