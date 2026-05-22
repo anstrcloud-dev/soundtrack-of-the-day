@@ -131,7 +131,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                         {/* Play button */}
                         <button
                             onClick={togglePlay}
-                            className={`w-12 h-12 mx-auto flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg ${isCapturing ? 'hidden' : ''}`}
+                            className="w-12 h-12 mx-auto flex items-center justify-center bg-white/10 backdrop-blur-lg border border-white/30 hover:bg-white/20 text-white rounded-full transition shadow-lg"
                         >
                             {isPlaying ? (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
