@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react'
 import useUserId from './useUserId'
-import axios from 'axios'
+import axios from 'axios' //tool used to send HTTP requests to backend server
 
 
 type Track = {
@@ -23,12 +23,19 @@ type Track = {
 
 
 const useTrack = () => {
-    const userId = useUserId()
+    const userId = useUserId() //get or create user ID
     const [track, setTrack] = useState<Track | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
 
+
+    /*
+    Run this code block as soon as the component appears on the screen. 
+    Also, if the userId ever changes, run it again.
+    */
+
     useEffect(() => {
+        
         const fetchTrack = async () => {
             try {
                 const response = await axios.get(`https://audiomancy-api.onrender.com/api/track?userId=${userId}`)
@@ -43,8 +50,8 @@ const useTrack = () => {
         fetchTrack()
     }, [userId])
 
-    return { track, loading, error }
+    return { track, loading, error } //hook passes its internal states out to whichever component called it
 
 }
 
-export default useTrack
+export default useTrack //makes this file available to be imported elsewhere in the app

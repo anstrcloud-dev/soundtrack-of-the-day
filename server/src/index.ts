@@ -2,20 +2,21 @@
 // Has one route: GET /api/track that just responds with { message: "hello" } for now
 // Listens on port 3001
 
-const readingCache = new Map<string, { reading: string, date: string }>()
+const readingCache = new Map<string, { reading: string, date: string }>() //in memory cache for readings
 
-import express, { Request, Response } from 'express'
-import axios from 'axios'
-import cors from 'cors'
-import 'dotenv/config'
+import express, { Request, Response } from 'express' 
+import axios from 'axios' //An HTTP client used to fetch data from the external Deezer API
+import cors from 'cors' //Cross-Origin Resource Sharing middleware, which allows your frontend application to talk to this backend
+import 'dotenv/config' //Loads environment variables from a .env file (like your API keys) into process.env
 import Groq from 'groq-sdk'
 
+//initialize groq client
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 })
 
 const app = express() // creates actual server instance
-app.use(cors())
+app.use(cors()) //Cross-Origin Resource Sharing
 
 const port = 3001
 
@@ -29,6 +30,7 @@ const hashSeed = (str: string): number => {
   }
   return hash
 }
+
 
 const GENRES = [
   'pop', 'rock', 'jazz', 'electronic', 'classical', 'hip-hop', 'soul', 'indie',
@@ -51,7 +53,7 @@ const generateReading = async (title: string, artist: string, genre: string, use
 
 
 
-  const prompt = `You are a mystical music oracle.
+  const prompt = /*`You are a mystical music oracle.
 
 Given this song, generate a short poetic prediction for the user's day.
 
@@ -60,14 +62,44 @@ Keep it:
 - mysterious
 - emotionally evocative
 - never cheesy
-- never mention AI or being an assistant
+- never mention AI or being an assistant 
+
 
 Song: "${title}"
 Artist: ${artist}
 Genre: ${genre}
 
-Generate ONLY the reading, nothing else.`
+Generate ONLY the reading, nothing else.`*/
 
+
+`You are an oracle generating strange predictions inspired by music.
+
+Requirements:
+- under 40 words
+- each prediction should feel personal and distinct
+- avoid generic mystical language
+- avoid inspirational quote style
+- avoid random absurdism
+- use vivid but meaningful imagery
+- leave some ambiguity
+- sound like a fragment from a dream, memory, or future event
+- sometimes intimate, sometimes unsettling, sometimes beautiful
+
+The oracle listened to this soundtrack before speaking:
+
+Song: "${title}"
+Artist: ${artist}
+Genre: ${genre}
+
+Write like the user will think about this sentence again later tonight.
+Return ONLY the prediction.`
+
+/*
+Sends the prompt to Groq using the highly efficient llama-3.3-70b-versatile model. 
+The temperature of 0.8 allows the model to be creative and poetic rather than overly literal. 
+It grabs the text response, caches it for next time, and returns it. 
+If anything breaks, it defaults to a mystical fallback string.
+*/
   const completion = await groq.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],
     model: 'llama-3.3-70b-versatile',
@@ -80,6 +112,7 @@ Generate ONLY the reading, nothing else.`
 
   return newReading
 }
+
 
 //tarot card art
 const generateCardArt = (reading: string, genre: string) => {
@@ -94,8 +127,8 @@ const generateCardArt = (reading: string, genre: string) => {
 
 //route handler
 app.get('/api/track', async (req: Request, res: Response) => {
-  const userId = req.query.userId as string
-  const date = new Date().toISOString().slice(0, 10)
+  const userId = req.query.userId as string//extracts the userId from the URL parameters
+  const date = new Date().toISOString().slice(0, 10)//creates an YYYY-MM-DD string.
   const seed = hashSeed(date + userId)
   const dateNumber = new Date().getDate() + new Date().getMonth() * 31  // changes daily
   const userSeed = hashSeed(userId) //user-specific variation
@@ -109,6 +142,12 @@ app.get('/api/track', async (req: Request, res: Response) => {
   //const track = response.data.data[0] //the first .data is axios unwrapping the response, the second .data is the Deezer array, and [0] gets the first (only) track.
   //console.log('genre:', genre, 'offset:', offset, 'results:', response.data.data.length)
 
+  /*
+  fallback loop
+  if Deezer won't find a song if the calculated offset index is too high for smaller genres
+   runs up to 10 times
+    If it hits an empty result, it shifts the index offset and switches up the genre until it successfully lands a valid track
+  */
   let track = null
   let attempts = 0
   let currentOffset = offset
@@ -128,12 +167,16 @@ app.get('/api/track', async (req: Request, res: Response) => {
     }
   }
 
-
   if (!track) {
     res.status(404).json({ error: 'No track found' })
     return
   }
 
+
+
+
+//triggers AI oracle function
+//shoots it back to the client application
   const reading = await generateReading(track.title, track.artist.name, currentGenre, userId, date)
   //const cardArt = generateCardArt(reading, currentGenre)
 

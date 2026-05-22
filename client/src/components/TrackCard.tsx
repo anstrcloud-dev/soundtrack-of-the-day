@@ -44,7 +44,7 @@ const TrackCard = ({ title, artist, cover, preview, reading, onFinishSplash }: T
                     url: window.location.href
                 })
             } catch (err) {
-                console.log('Share cancelled')
+                console.log('Share cancelled', err)
             }
         } else {
             // Fallback: copy to clipboard
