@@ -1,3 +1,5 @@
+// ONE job: manage user identity (create/retrieve from localStorage)
+
 import { useState } from 'react'
 
 

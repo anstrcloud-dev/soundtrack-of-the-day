@@ -1,3 +1,6 @@
+//ONE job: fetch track data from API
+
+
 //hook needs to:
 
 //Import useState, useEffect from react
@@ -35,7 +38,7 @@ const useTrack = () => {
     */
 
     useEffect(() => {
-        
+
         const fetchTrack = async () => {
             try {
                 const response = await axios.get(`https://audiomancy-api.onrender.com/api/track?userId=${userId}`)
